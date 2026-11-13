@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WA Status Saver Pro</title>
+
+    <!-- PWA & Mobile Install Ready Meta Tags -->
+    <meta name="theme-color" content="#008069">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WA Status Saver">
+    <meta name="description" content="Live, private WhatsApp Status Saver & Stealth Viewer. Works 100% locally on phone and desktop.">
+
+    <!-- Dynamic PWA Manifest & Icon Registration -->
+    <script>
+        (function setupPWA() {
+            const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#008069"/><circle cx="256" cy="256" r="176" fill="#25D366"/><path d="M256 156v140m0 0l-56-56m56 56l56-56M176 348h160" stroke="#ffffff" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
+            const iconUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgIcon);
+
+            // Set Apple Touch Icon & Favicon
+            const appleIcon = document.createElement('link');
+            appleIcon.rel = 'apple-touch-icon';
+            appleIcon.href = iconUrl;
+            document.head.appendChild(appleIcon);
+
+            const favIcon = document.createElement('link');
+            favIcon.rel = 'icon';
+            favIcon.type = 'image/svg+xml';
+            favIcon.href = iconUrl;
+            document.head.appendChild(favIcon);
+
+            // Generate Web App Manifest Blob for Install Prompt
+            const manifest = {
+                name: 'WA Status Saver Pro',
+                short_name: 'Status Saver',
+                description: 'Live local WhatsApp Status Saver & Stealth Viewer',
+                start_url: location.href.split('#')[0],
+                display: 'standalone',
+                background_color: '#111b21',
+                theme_color: '#008069',
+                orientation: 'portrait-primary',
+                icons: [
+                    { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+                    { src: iconUrl, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+                ]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+            const manifestLink = document.createElement('link');
+            manifestLink.rel = 'manifest';
+            manifestLink.href = URL.createObjectURL(manifestBlob);
+            document.head.appendChild(manifestLink);
+        })();
+    </script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        wa: {
+                            teal: '#008069',
+                            darkTeal: '#005c4b',
+                            green: '#25D366',
+                            lightGreen: '#dcf8c6',
+                            darkBg: '#111b21',
+                            darkSurface: '#202c33',
+                            darkHover: '#2a3942',
+                            lightBg: '#f0f2f5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Hide scrollbars cleanly for horizontal mobile nav */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Safe area padding for notched phones (iPhone/Android gesture bars) */
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+    </style>
+</head>
+<body class="bg-wa-lightBg text-slate-800 dark:bg-wa-darkBg dark:text-slate-100 font-sans antialiased selection:bg-wa-green selection:text-white transition-colors duration-200 min-h-screen flex flex-col pb-20 sm:pb-0">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-30 bg-wa-teal dark:bg-wa-darkSurface text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-14 sm:h-16">
+                <!-- Brand Logo & Title -->
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <div class="bg-wa-green p-1.5 sm:p-2 rounded-xl shadow-inner flex items-center justify-center shrink-0">
+                        <i class="ph-fill ph-whatsapp-logo text-xl sm:text-2xl text-white"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center space-x-1.5">
+                            <h1 class="text-sm sm:text-xl font-bold tracking-tight leading-none truncate">Status Saver</h1>
+                            <span class="px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-wa-green text-white rounded-md shrink-0">Live</span>
+                        </div>
+                        <p class="hidden xs:block text-[11px] sm:text-xs text-emerald-100 dark:text-slate-400 mt-0.5 truncate">Phone &amp; Web Vault</p>
+                    </div>
+                </div>
+
+                <!-- Action Controls (Compact & Thumb-Friendly on Mobile) -->
+                <div class="flex items-center space-x-1 sm:space-x-2.5 shrink-0">
+                    <!-- Install App Button (Triggers PWA Install or Mobile Guide) -->
+                    <button id="installAppBtn" onclick="triggerInstallApp()" title="Install App to Phone / Desktop" class="flex items-center space-x-1 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer">
+                        <i class="ph-bold ph-device-mobile-camera text-base sm:text-lg"></i>
+                        <span>Install</span>
+                    </button>
+
+                    <!-- Directory Connect Button (Live File System Access API / Mobile File Picker) -->
+                    <button id="connectFolderBtn" onclick="connectStatusFolder()" class="flex items-center space-x-1.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer">
+                        <i class="ph ph-folder-open text-base sm:text-lg"></i>
+                        <span class="hidden md:inline">Open .Statuses Folder</span>
+                        <span class="md:hidden">Load</span>
+                    </button>
+
+                    <!-- Ghost Mode / Hide Seen Toggle -->
+                    <button id="ghostModeBtn" onclick="toggleGhostMode()" title="Ghost Mode: Hide Seen Status" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-wa-green text-white text-xs sm:text-sm font-semibold shadow-sm hover:bg-emerald-500 active:scale-95 transition-all cursor-pointer">
+                        <i id="ghostIcon" class="ph-fill ph-eye-slash text-base sm:text-lg"></i>
+                        <span class="hidden lg:inline" id="ghostLabel">Ghost Mode: ON</span>
+                    </button>
+
+                    <!-- Refresh / Re-scan Button (Desktop/Tablet) -->
+                    <button onclick="refreshStatuses()" title="Re-scan Connected Folder" class="hidden sm:flex p-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
+                        <i id="refreshIcon" class="ph ph-arrows-clockwise text-lg"></i>
+                    </button>
+
+                    <!-- Privacy & Permissions Button -->
+                    <button onclick="toggleModal('permissionsModal', true)" title="Privacy & Status Permissions" class="p-2 sm:p-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
+                        <i class="ph ph-shield-check text-base sm:text-lg"></i>
+                    </button>
+
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleTheme()" title="Toggle Theme" class="p-2 sm:p-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
+                        <i id="themeIcon" class="ph ph-moon text-base sm:text-lg"></i>
+                    </button>
+
+                    <!-- Help / Phone Setup Guide Button (Desktop/Tablet) -->
+                    <button onclick="toggleModal('guideModal', true)" title="Phone & Desktop Setup Guide" class="hidden sm:flex p-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all cursor-pointer">
+                        <i class="ph ph-question text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Tabs (Desktop & Tablet Top Tabs) -->
+        <div class="hidden sm:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="flex space-x-1 sm:space-x-4 overflow-x-auto no-scrollbar" aria-label="Tabs">
+                <button onclick="setFilter('all')" id="tab-all" class="tab-btn border-b-4 border-white text-white py-3 px-4 text-sm font-semibold flex items-center space-x-2 whitespace-nowrap transition-all">
+                    <i class="ph ph-squares-four text-lg"></i>
+                    <span>All Statuses</span>
+                    <span id="count-all" class="bg-white/20 text-white text-xs py-0.5 px-2 rounded-full">0</span>
+                </button>
+                <button onclick="setFilter('unseen')" id="tab-unseen" class="tab-btn border-b-4 border-transparent text-emerald-100 hover:text-white py-3 px-4 text-sm font-medium flex items-center space-x-2 whitespace-nowrap transition-all">
+                    <i class="ph ph-eye-closed text-lg"></i>
+                    <span>Unseen</span>
+                    <span id="count-unseen" class="bg-wa-green/80 text-white text-xs py-0.5 px-2 rounded-full">0</span>
+                </button>
+                <button onclick="setFilter('image')" id="tab-image" class="tab-btn border-b-4 border-transparent text-emerald-100 hover:text-white py-3 px-4 text-sm font-medium flex items-center space-x-2 whitespace-nowrap transition-all">
+                    <i class="ph ph-image text-lg"></i>
+                    <span>Images</span>
+                    <span id="count-image" class="bg-white/10 text-white text-xs py-0.5 px-2 rounded-full">0</span>
+                </button>
+                <button onclick="setFilter('video')" id="tab-video" class="tab-btn border-b-4 border-transparent text-emerald-100 hover:text-white py-3 px-4 text-sm font-medium flex items-center space-x-2 whitespace-nowrap transition-all">
+                    <i class="ph ph-video-camera text-lg"></i>
+                    <span>Videos</span>
+                    <span id="count-video" class="bg-white/10 text-white text-xs py-0.5 px-2 rounded-full">0</span>
+                </button>
+                <button onclick="setFilter('saved')" id="tab-saved" class="tab-btn border-b-4 border-transparent text-emerald-100 hover:text-white py-3 px-4 text-sm font-medium flex items-center space-x-2 whitespace-nowrap transition-all">
+                    <i class="ph ph-bookmark-simple text-lg"></i>
+                    <span>Saved</span>
+                    <span id="count-saved" class="bg-white/10 text-white text-xs py-0.5 px-2 rounded-full">0</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        
+        <!-- Search & Batch Action Toolbar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 mb-4 sm:mb-6 bg-white dark:bg-wa-darkSurface p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70">
+            <!-- Search Input + Mobile Quick Actions -->
+            <div class="flex items-center gap-2 flex-grow max-w-md">
+                <div class="relative flex-grow">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base sm:text-lg"></i>
+                    <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Search statuses..." 
+                        class="w-full pl-9 pr-3 py-2 sm:py-2.5 bg-slate-100 dark:bg-wa-darkBg border-none rounded-xl text-sm focus:ring-2 focus:ring-wa-teal dark:focus:ring-wa-green outline-none transition-all placeholder:text-slate-400">
+                </div>
+                <button onclick="refreshStatuses()" title="Refresh" class="sm:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-wa-darkBg text-slate-700 dark:text-slate-200 active:scale-95 shrink-0 cursor-pointer">
+                    <i class="ph ph-arrows-clockwise text-lg"></i>
+                </button>
+                <button onclick="toggleModal('guideModal', true)" title="Setup Guide" class="sm:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-wa-darkBg text-slate-700 dark:text-slate-200 active:scale-95 shrink-0 cursor-pointer">
+                    <i class="ph ph-question text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Batch Selection Controls -->
+            <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
+                <button onclick="saveAllUnseen()" id="saveAllNewBtn" class="hidden flex-1 sm:flex-initial justify-center px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-wa-teal hover:bg-wa-darkTeal active:scale-95 text-white shadow-sm flex items-center space-x-1.5 transition-all cursor-pointer">
+                    <i class="ph-bold ph-cloud-arrow-down text-base sm:text-lg"></i>
+                    <span>Save All New (<span id="unseenBackupCount">0</span>)</span>
+                </button>
+
+                <button onclick="toggleSelectMode()" id="selectModeBtn" class="flex-1 sm:flex-initial justify-center px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 dark:bg-wa-darkBg hover:bg-slate-200 dark:hover:bg-wa-darkHover text-slate-700 dark:text-slate-200 flex items-center space-x-1.5 transition-all cursor-pointer">
+                    <i class="ph ph-check-square text-base sm:text-lg"></i>
+                    <span>Select Multiple</span>
+                </button>
+
+                <button onclick="downloadSelected()" id="batchDownloadBtn" class="hidden flex-1 sm:flex-initial justify-center px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-wa-green hover:bg-emerald-500 text-white shadow-sm flex items-center space-x-1.5 transition-all cursor-pointer">
+                    <i class="ph ph-download-simple text-base sm:text-lg"></i>
+                    <span>Save Selected (<span id="selectedCount">0</span>)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Live Connection Status Banner -->
+        <div id="statusBanner" class="mb-4 sm:mb-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-3 sm:p-3.5 px-3.5 sm:px-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3">
+            <div class="flex items-start sm:items-center space-x-2.5 sm:space-x-3">
+                <span class="flex h-2.5 w-2.5 sm:h-3 sm:w-3 relative shrink-0 mt-1 sm:mt-0">
+                    <span id="bannerPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span id="bannerDot" class="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-amber-500"></span>
+                </span>
+                <p id="bannerText" class="text-xs sm:text-sm text-emerald-950 dark:text-emerald-200 leading-snug">
+                    <strong>Live Mode Ready:</strong> Connect your WhatsApp <code>.Statuses</code> folder or select cached status media from your phone to view &amp; save in stealth mode.
+                </p>
+            </div>
+            <div class="flex items-center space-x-2 w-full sm:w-auto justify-end shrink-0">
+                <button id="reconnectFolderBtn" onclick="reconnectSavedDirectory()" class="hidden px-3 py-1.5 rounded-lg bg-wa-teal text-white text-xs font-semibold hover:bg-wa-darkTeal transition-all cursor-pointer">
+                    Reconnect Last Folder
+                </button>
+                <button onclick="connectStatusFolder()" class="w-full sm:w-auto text-center px-3.5 py-2 sm:py-1.5 rounded-xl sm:rounded-lg bg-wa-green text-white text-xs font-semibold hover:bg-emerald-500 active:scale-95 transition-all cursor-pointer">
+                    Connect Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Media Grid (2-Column Native Mobile Gallery -> 3-Col Tablet -> 4-Col Desktop) -->
+        <div id="mediaGrid" class="hidden grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
+            <!-- Live status cards injected dynamically via JS -->
+        </div>
+
+        <!-- Live Onboarding / Empty State (Zero Mock Data) -->
+        <div id="emptyState" class="flex flex-col items-center justify-center py-10 sm:py-14 px-4 text-center bg-white dark:bg-wa-darkSurface rounded-3xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-wa-teal dark:text-wa-green mb-4 shadow-inner">
+                <i class="ph-fill ph-folder-open text-3xl sm:text-4xl"></i>
+            </div>
+            <h3 id="emptyTitle" class="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Connect Your Live WhatsApp Statuses</h3>
+            <p id="emptyDesc" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mt-1.5 leading-relaxed">
+                No mock files are shown. Select your phone or computer's WhatsApp <code>Media/.Statuses</code> folder (or pick status photos/videos directly) to inspect unseen statuses and download them permanently.
+            </p>
+            <div class="mt-3 p-2.5 sm:p-3 rounded-xl bg-slate-50 dark:bg-wa-darkBg border border-slate-200/80 dark:border-slate-700/80 max-w-md w-full">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Default Android Path</span>
+                <code class="block text-[11px] text-wa-teal dark:text-wa-green mt-1 break-all font-mono">
+                    Internal Storage &gt; Android &gt; media &gt; com.whatsapp &gt; WhatsApp &gt; Media &gt; .Statuses
+                </code>
+            </div>
+
+            <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <button onclick="connectStatusFolder()" class="px-6 py-3 bg-wa-green hover:bg-emerald-500 active:scale-95 text-white font-semibold text-sm rounded-xl shadow-md flex items-center space-x-2 transition-all cursor-pointer">
+                    <i class="ph-bold ph-folder-open text-lg"></i>
+                    <span>Select .Statuses Folder</span>
+                </button>
+                <button onclick="document.getElementById('fallbackFileInput').click()" class="px-5 py-3 bg-slate-100 dark:bg-wa-darkBg hover:bg-slate-200 dark:hover:bg-wa-darkHover text-slate-700 dark:text-slate-200 font-semibold text-sm rounded-xl flex items-center space-x-2 transition-all cursor-pointer">
+                    <i class="ph ph-images text-lg"></i>
+                    <span>Pick Media Files</span>
+                </button>
+                <button id="emptyResetBtn" onclick="resetFilters()" class="hidden px-5 py-3 bg-wa-teal hover:bg-wa-darkTeal text-white font-medium text-sm rounded-xl transition-all cursor-pointer">
+                    Reset Search / Filter
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Fullscreen Media Preview Modal -->
+    <div id="previewModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target === this) closePreview()">
+        <div class="bg-wa-darkSurface rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl border border-slate-700 flex flex-col">
+            <!-- Modal Header -->
+            <div class="p-4 flex items-center justify-between border-b border-slate-700/80 text-white">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <img id="modalAvatar" src="" alt="Status" class="w-10 h-10 rounded-full object-cover border-2 border-wa-green shrink-0">
+                    <div class="min-w-0">
+                        <h3 id="modalAuthor" class="text-sm font-bold leading-tight truncate">Status File</h3>
+                        <p id="modalTime" class="text-xs text-slate-400 truncate">Just now</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 shrink-0">
+                    <button id="modalShareBtn" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer" title="Share / Save to Phone Gallery">
+                        <i class="ph-bold ph-share-network text-base"></i>
+                        <span class="hidden sm:inline">Share</span>
+                    </button>
+                    <button id="modalSaveBtn" class="px-3.5 py-2 rounded-xl bg-wa-green hover:bg-emerald-500 text-white text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer">
+                        <i class="ph-bold ph-download-simple text-base"></i>
+                        <span>Save</span>
+                    </button>
+                    <button onclick="closePreview()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer">
+                        <i class="ph ph-x text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Media Body -->
+            <div id="modalMediaContainer" class="bg-black flex items-center justify-center min-h-[300px] max-h-[72vh] p-2">
+                <!-- Image or Video injected dynamically -->
+            </div>
+
+            <!-- Modal Caption Footer -->
+            <div id="modalCaptionBox" class="p-4 bg-wa-darkBg text-slate-200 text-xs sm:text-sm border-t border-slate-800">
+                <p id="modalCaption" class="truncate"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phone & Desktop Install + Usage Guide Modal -->
+    <div id="guideModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" onclick="if(event.target === this) toggleModal('guideModal', false)">
+        <div class="bg-white dark:bg-wa-darkSurface rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="bg-wa-teal/15 p-2 rounded-xl text-wa-teal dark:text-wa-green">
+                        <i class="ph-fill ph-device-mobile text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold">Install on Phone &amp; Live Usage</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Progressive Web App (PWA) &amp; File Access</p>
+                    </div>
+                </div>
+                <button onclick="toggleModal('guideModal', false)" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
+                    <i class="ph ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-600 dark:text-slate-300">
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+                    <h4 class="font-bold text-emerald-900 dark:text-emerald-300 flex items-center space-x-1.5 mb-1">
+                        <i class="ph-fill ph-download text-base"></i>
+                        <span>1. Install as a Phone App (Android &amp; iOS)</span>
+                    </h4>
+                    <ul class="text-xs space-y-1.5 text-emerald-800 dark:text-emerald-200/90 list-disc list-inside">
+                        <li><strong>Android (Chrome/Edge):</strong> Tap the <strong>Install App</strong> button at the top or tap browser menu (<code>⋮</code>) &rarr; <strong>Add to Home screen / Install app</strong>.</li>
+                        <li><strong>iPhone / iPad (Safari):</strong> Tap the <strong>Share</strong> icon (<i class="ph ph-export"></i>) at the bottom &rarr; scroll down and tap <strong>Add to Home Screen</strong>.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-800 dark:text-white mb-1.5">2. Load Live WhatsApp Statuses</h4>
+                    <ol class="space-y-2 text-xs list-decimal list-inside">
+                        <li>Open WhatsApp on your phone so new statuses cache to storage.</li>
+                        <li>Open <strong>WA Status Saver</strong> and tap <strong>Open .Statuses Folder</strong>.</li>
+                        <li>In your file picker, tap menu (<code>⋮</code>) &rarr; <strong>Show hidden files</strong>, then browse to:<br>
+                            <code class="text-[11px] text-wa-teal dark:text-wa-green">Android &gt; media &gt; com.whatsapp &gt; WhatsApp &gt; Media &gt; .Statuses</code>
+                        </li>
+                        <li>Tap <strong>Use this folder</strong> &rarr; <strong>Allow</strong>. All live statuses load instantly!</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-between">
+                <button onclick="triggerInstallApp()" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer">
+                    <i class="ph-bold ph-device-mobile-camera text-base"></i>
+                    <span>Install App Now</span>
+                </button>
+                <button onclick="toggleModal('guideModal', false)" class="px-5 py-2.5 bg-wa-teal hover:bg-wa-darkTeal text-white font-medium text-sm rounded-xl transition-all cursor-pointer">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy & Status Permissions Modal -->
+    <div id="permissionsModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" onclick="if(event.target === this) toggleModal('permissionsModal', false)">
+        <div class="bg-white dark:bg-wa-darkSurface rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="bg-wa-green/15 p-2 rounded-xl text-wa-green">
+                        <i class="ph-fill ph-shield-check text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold">Status Privacy &amp; Permissions</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Manage read receipts &amp; live folder access</p>
+                    </div>
+                </div>
+                <button onclick="toggleModal('permissionsModal', false)" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
+                    <i class="ph ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Permission 1: Ghost Mode / Hide Seen Receipt -->
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-wa-darkBg border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between gap-4">
+                    <div>
+                        <h4 class="text-sm font-semibold flex items-center space-x-1.5">
+                            <i class="ph-fill ph-eye-slash text-wa-green"></i>
+                            <span>Hide "Seen" Status (Stealth View)</span>
+                        </h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            View statuses without marking them as seen in your feed or triggering read receipts.
+                        </p>
+                    </div>
+                    <button id="permGhostToggle" onclick="toggleGhostMode()" class="w-12 h-6 rounded-full bg-wa-green p-1 transition-colors shrink-0 cursor-pointer">
+                        <div id="permGhostKnob" class="w-4 h-4 rounded-full bg-white translate-x-6 transition-transform"></div>
+                    </button>
+                </div>
+
+                <!-- Permission 2: Auto-Remember Folder Handle -->
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-wa-darkBg border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between gap-4">
+                    <div>
+                        <h4 class="text-sm font-semibold flex items-center space-x-1.5">
+                            <i class="ph-fill ph-folder-lock text-sky-500"></i>
+                            <span>Persistent Folder Permission</span>
+                        </h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Remember your connected <code>.Statuses</code> folder in local IndexedDB for 1-tap refresh.
+                        </p>
+                    </div>
+                    <button id="permCacheToggle" onclick="toggleCachePermission()" class="w-12 h-6 rounded-full bg-wa-green p-1 transition-colors shrink-0 cursor-pointer">
+                        <div id="permCacheKnob" class="w-4 h-4 rounded-full bg-white translate-x-6 transition-transform"></div>
+                    </button>
+                </div>
+
+                <!-- Permission 3: Mark all as unseen -->
+                <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 flex items-center justify-between gap-3">
+                    <p class="text-xs text-amber-800 dark:text-amber-300">
+                        Restore all loaded statuses back to <strong>Unseen</strong> state.
+                    </p>
+                    <button onclick="resetAllToUnseen()" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shrink-0 transition-all cursor-pointer">
+                        Reset Unseen
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-between">
+                <button onclick="connectStatusFolder(); toggleModal('permissionsModal', false);" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-wa-darkBg hover:bg-slate-200 dark:hover:bg-wa-darkHover text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer">
+                    <i class="ph ph-folder-open text-base"></i>
+                    <span>Grant Folder Permission</span>
+                </button>
+                <button onclick="toggleModal('permissionsModal', false)" class="px-5 py-2.5 bg-wa-teal hover:bg-wa-darkTeal text-white font-medium text-sm rounded-xl transition-all cursor-pointer">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Hidden File Input Fallback for Mobile Browsers without showDirectoryPicker -->
+    <input type="file" id="fallbackFileInput" multiple accept="image/*,video/*" class="hidden" onchange="handleFallbackFiles(event)">
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-wa-darkSurface border-t border-slate-200 dark:border-slate-800 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
+            <p>WA Status Saver Pro &bull; Live Local App. Zero servers, zero mock data—100% private on your device.</p>
+            <p class="flex items-center space-x-1">
+                <i class="ph-fill ph-shield-check text-wa-green text-base"></i>
+                <span>Install-Ready PWA</span>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // ==========================================
+        // LIVE APPLICATION STATE (NO MOCK DATA)
+        // ==========================================
+        let statuses = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let selectMode = false;
+        let selectedIds = new Set();
+        let ghostMode = true;
+        let cacheAccessGranted = true;
+        let activeDirectoryHandle = null;
+        let deferredInstallPrompt = null;
+
+        // ==========================================
+        // PWA INSTALL PROMPT & SERVICE WORKER SETUP
+        // ==========================================
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            const installBtn = document.getElementById('installAppBtn');
+            if (installBtn) {
+                installBtn.classList.add('animate-pulse');
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            deferredInstallPrompt = null;
+            const installBtn = document.getElementById('installAppBtn');
+            if (installBtn) installBtn.classList.add('hidden');
+            showToast('WA Status Saver installed on your device!', 'success');
+        });
+
+        async function triggerInstallApp() {
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    showToast('Installing app to your home screen...', 'success');
+                }
+                deferredInstallPrompt = null;
+            } else {
+                // Show platform-specific Add to Home Screen instructions
+                toggleModal('guideModal', true);
+                showToast('Follow the quick steps to add this app to your Home Screen!', 'info');
+            }
+        }
+
+        // Register Service Worker for offline/standalone PWA readiness when served over HTTP/HTTPS
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+            navigator.serviceWorker.register('./sw.js').catch(() => {
+                const swCode = `
+                    self.addEventListener('install', (e) => self.skipWaiting());
+                    self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+                    self.addEventListener('fetch', (e) => {
+                        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                    });
+                `;
+                try {
+                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+                } catch (e) {}
+            });
+        }
+
+        // ==========================================
+        // INDEXEDDB PERSISTENCE FOR DIRECTORY HANDLE
+        // ==========================================
+        function openHandleDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open('WAStatusSaverDB', 1);
+                req.onupgradeneeded = () => {
+                    req.result.createObjectStore('handles');
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function saveDirectoryHandle(handle) {
+            if (!cacheAccessGranted) return;
+            try {
+                const db = await openHandleDB();
+                const tx = db.transaction('handles', 'readwrite');
+                tx.objectStore('handles').put(handle, 'statusesDir');
+            } catch (e) {}
+        }
+
+        async function getSavedDirectoryHandle() {
+            try {
+                const db = await openHandleDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('handles', 'readonly');
+                    const req = tx.objectStore('handles').get('statusesDir');
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve(null);
+                });
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', async () => {
+            const savedGhost = localStorage.getItem('wa_ghost_mode');
+            if (savedGhost !== null) {
+                ghostMode = savedGhost === 'true';
+            }
+            updateGhostModeUI();
+
+            // Check system or saved theme
+            if (localStorage.getItem('wa_theme') === 'dark' || 
+               (!localStorage.getItem('wa_theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').classList.replace('ph-moon', 'ph-sun');
+            }
+
+            // Hide install button if already running in standalone installed mode
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+                const installBtn = document.getElementById('installAppBtn');
+                if (installBtn) installBtn.classList.add('hidden');
+            }
+
+            // Check if a previously granted .Statuses folder handle exists in IndexedDB
+            const storedHandle = await getSavedDirectoryHandle();
+            if (storedHandle) {
+                activeDirectoryHandle = storedHandle;
+                document.getElementById('reconnectFolderBtn').classList.remove('hidden');
+                document.getElementById('bannerText').innerHTML = `<strong>Saved Folder Found:</strong> Tap <em>"Reconnect Last Folder"</em> to reload live statuses from <strong>${storedHandle.name}</strong>.`;
+            }
+
+            renderStatuses();
+        });
+
+        // ==========================================
+        // LIVE FOLDER & FILE SCANNER
+        // ==========================================
+        async function scanDirectoryHandle(dirHandle) {
+            const savedNames = JSON.parse(localStorage.getItem('wa_saved_status_names') || '[]');
+            const seenNames = JSON.parse(localStorage.getItem('wa_seen_status_names') || '[]');
+            const liveItems = [];
+
+            for await (const entry of dirHandle.values()) {
+                if (entry.kind === 'file') {
+                    // Skip .nomedia file inside WhatsApp .Statuses folder
+                    if (entry.name === '.nomedia') continue;
+
+                    const file = await entry.getFile();
+                    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+                        const objectUrl = URL.createObjectURL(file);
+                        const isVideo = file.type.startsWith('video/');
+                        const fileKey = `${file.name}_${file.size}`;
+
+                        liveItems.push({
+                            id: fileKey,
+                            fileObj: file,
+                            author: formatStatusTitle(file.name, isVideo),
+                            avatar: `https://placehold.co/100x100/008069/ffffff?text=${isVideo ? 'VID' : 'IMG'}`,
+                            type: isVideo ? 'video' : 'image',
+                            url: objectUrl,
+                            caption: file.name,
+                            lastModified: file.lastModified,
+                            timestamp: formatRelativeTime(file.lastModified),
+                            size: formatBytes(file.size),
+                            saved: savedNames.includes(fileKey),
+                            seen: seenNames.includes(fileKey)
+                        });
+                    }
+                }
+            }
+
+            // Sort newest statuses first
+            liveItems.sort((a, b) => b.lastModified - a.lastModified);
+
+            // Revoke previous object URLs to prevent memory leaks
+            statuses.forEach(s => {
+                if (s.url && s.url.startsWith('blob:')) URL.revokeObjectURL(s.url);
+            });
+
+            statuses = liveItems;
+            updateConnectedBanner(dirHandle.name, statuses.length);
+            renderStatuses();
+        }
+
+        async function reconnectSavedDirectory() {
+            if (!activeDirectoryHandle) {
+                return connectStatusFolder();
+            }
+            try {
+                const perm = await activeDirectoryHandle.requestPermission({ mode: 'read' });
+                if (perm === 'granted') {
+                    await scanDirectoryHandle(activeDirectoryHandle);
+                    document.getElementById('reconnectFolderBtn').classList.add('hidden');
+                    showToast(`Synced ${statuses.length} live statuses from ${activeDirectoryHandle.name}!`, 'success');
+                } else {
+                    showToast('Folder permission denied. Please select folder again.', 'warning');
+                }
+            } catch (e) {
+                connectStatusFolder();
+            }
+        }
+
+        async function connectStatusFolder() {
+            if ('showDirectoryPicker' in window) {
+                try {
+                    const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
+                    activeDirectoryHandle = dirHandle;
+                    await saveDirectoryHandle(dirHandle);
+                    document.getElementById('reconnectFolderBtn').classList.add('hidden');
+                    await scanDirectoryHandle(dirHandle);
+                    showToast(`Connected "${dirHandle.name}" (${statuses.length} live items)!`, 'success');
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        document.getElementById('fallbackFileInput').click();
+                    }
+                }
+            } else {
+                // Mobile browsers without File System Directory Picker use multi-file selector
+                document.getElementById('fallbackFileInput').click();
+            }
+        }
+
+        function handleFallbackFiles(event) {
+            const files = Array.from(event.target.files || []).filter(
+                f => f.name !== '.nomedia' && (f.type.startsWith('image/') || f.type.startsWith('video/'))
+            );
+            if (files.length === 0) {
+                showToast('No image or video status files selected.', 'warning');
+                return;
+            }
+
+            const savedNames = JSON.parse(localStorage.getItem('wa_saved_status_names') || '[]');
+            const seenNames = JSON.parse(localStorage.getItem('wa_seen_status_names') || '[]');
+
+            // Revoke previous object URLs
+            statuses.forEach(s => {
+                if (s.url && s.url.startsWith('blob:')) URL.revokeObjectURL(s.url);
+            });
+
+            statuses = files.map(file => {
+                const isVideo = file.type.startsWith('video/');
+                const fileKey = `${file.name}_${file.size}`;
+                return {
+                    id: fileKey,
+                    fileObj: file,
+                    author: formatStatusTitle(file.name, isVideo),
+                    avatar: `https://placehold.co/100x100/008069/ffffff?text=${isVideo ? 'VID' : 'IMG'}`,
+                    type: isVideo ? 'video' : 'image',
+                    url: URL.createObjectURL(file),
+                    caption: file.name,
+                    lastModified: file.lastModified,
+                    timestamp: formatRelativeTime(file.lastModified),
+                    size: formatBytes(file.size),
+                    saved: savedNames.includes(fileKey),
+                    seen: seenNames.includes(fileKey)
+                };
+            }).sort((a, b) => b.lastModified - a.lastModified);
+
+            updateConnectedBanner('Selected Device Media', statuses.length);
+            renderStatuses();
+            showToast(`Loaded ${statuses.length} live status files!`, 'success');
+            event.target.value = '';
+        }
+
+        function updateConnectedBanner(sourceName, count) {
+            const ping = document.getElementById('bannerPing');
+            const dot = document.getElementById('bannerDot');
+            const text = document.getElementById('bannerText');
+            if (ping) ping.classList.replace('bg-amber-400', 'bg-wa-green');
+            if (dot) dot.classList.replace('bg-amber-500', 'bg-wa-green');
+            if (text) {
+                text.innerHTML = `<strong>Live Connected (${escapeHtml(sourceName)}):</strong> Loaded <strong>${count}</strong> cached status ${count === 1 ? 'item' : 'items'}. Ghost Mode is <strong>${ghostMode ? 'ON (Seen Hidden)' : 'OFF'}</strong>.`;
+            }
+        }
+
+        function handleSearch(val) {
+            searchQuery = val || '';
+            renderStatuses();
+        }
+
+        // ==========================================
+        // RENDER ENGINE
+        // ==========================================
+        function renderStatuses() {
+            const grid = document.getElementById('mediaGrid');
+            const emptyState = document.getElementById('emptyState');
+            const emptyTitle = document.getElementById('emptyTitle');
+            const emptyDesc = document.getElementById('emptyDesc');
+            const emptyResetBtn = document.getElementById('emptyResetBtn');
+
+            // Update desktop & mobile tab counters
+            const unseenCount = statuses.filter(s => !s.seen).length;
+            const imgCount = statuses.filter(s => s.type === 'image').length;
+            const vidCount = statuses.filter(s => s.type === 'video').length;
+            const savedCount = statuses.filter(s => s.saved).length;
+
+            document.getElementById('count-all').textContent = statuses.length;
+            document.getElementById('count-unseen').textContent = unseenCount;
+            document.getElementById('count-image').textContent = imgCount;
+            document.getElementById('count-video').textContent = vidCount;
+            document.getElementById('count-saved').textContent = savedCount;
+
+            if (document.getElementById('mob-count-all')) {
+                document.getElementById('mob-count-all').textContent = statuses.length;
+                document.getElementById('mob-count-unseen').textContent = unseenCount;
+                document.getElementById('mob-count-image').textContent = imgCount;
+                document.getElementById('mob-count-video').textContent = vidCount;
+                document.getElementById('mob-count-saved').textContent = savedCount;
+            }
+
+            // Update "Save All New" button visibility & badge
+            const saveAllNewBtn = document.getElementById('saveAllNewBtn');
+            const unseenBackupCount = document.getElementById('unseenBackupCount');
+            if (saveAllNewBtn && unseenBackupCount) {
+                if (unseenCount > 0 && !selectMode) {
+                    saveAllNewBtn.classList.remove('hidden');
+                    unseenBackupCount.textContent = unseenCount;
+                } else {
+                    saveAllNewBtn.classList.add('hidden');
+                }
+            }
+
+            // Filter statuses
+            const filtered = statuses.filter(item => {
+                const matchesTab = 
+                    currentFilter === 'all' ? true :
+                    currentFilter === 'unseen' ? !item.seen :
+                    currentFilter === 'saved' ? item.saved :
+                    item.type === currentFilter;
+                
+                const matchesSearch = 
+                    item.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (item.caption && item.caption.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                return matchesTab && matchesSearch;
+            });
+
+            grid.innerHTML = '';
+
+            if (filtered.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+
+                if (statuses.length > 0) {
+                    emptyTitle.textContent = 'No Matching Statuses';
+                    emptyDesc.textContent = 'No live statuses match your active tab filter or search term.';
+                    emptyResetBtn.classList.remove('hidden');
+                } else {
+                    emptyTitle.textContent = 'Connect Your Live WhatsApp Statuses';
+                    emptyDesc.innerHTML = 'No mock files are shown. Select your phone or computer\'s WhatsApp <code>Media/.Statuses</code> folder (or pick status photos/videos directly) to inspect unseen statuses and download them permanently.';
+                    emptyResetBtn.classList.add('hidden');
+                }
+                return;
+            }
+
+            grid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+
+            filtered.forEach(item => {
+                const isSelected = selectedIds.has(item.id);
+                const expiry = formatExpiryCountdown(item.lastModified);
+                const card = document.createElement('div');
+                card.className = `group relative bg-white dark:bg-wa-darkSurface rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border transition-all duration-200 flex flex-col ${
+                    isSelected ? 'border-wa-green ring-2 ring-wa-green' : 'border-slate-200/80 dark:border-slate-700/80'
+                }`;
+
+                card.innerHTML = `
+                    <!-- Media Thumbnail Wrapper -->
+                    <div class="relative aspect-[3/4] sm:aspect-[4/5] bg-slate-900 overflow-hidden cursor-pointer" onclick="handleCardClick('${escapeAttr(item.id)}')">
+                        ${item.type === 'video' ? `
+                            <video src="${item.url}#t=0.5" class="w-full h-full object-cover" muted playsinline preload="metadata"></video>
+                        ` : `
+                            <img src="${item.url}" alt="${escapeAttr(item.author)}" 
+                                 onerror="this.src='https://placehold.co/400x500/202c33/25D366?text=Status+Media'"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        `}
+
+                        <!-- Subtle Gradient Overlay -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/35 opacity-90"></div>
+
+                        <!-- Top Badges -->
+                        <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between gap-1">
+                            <div class="flex flex-wrap items-center gap-1">
+                                <span class="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-semibold backdrop-blur-md bg-black/55 text-white flex items-center space-x-1">
+                                    <i class="ph-fill ${item.type === 'video' ? 'ph-video-camera text-wa-green' : 'ph-image text-sky-400'}"></i>
+                                    <span class="hidden sm:inline">${item.type === 'video' ? 'Video' : 'Photo'}</span>
+                                </span>
+                                ${!item.seen ? `
+                                    <span class="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-wa-green text-white shadow-sm">
+                                        Unseen
+                                    </span>
+                                ` : `
+                                    <span class="hidden sm:inline-block px-2 py-1 rounded-lg text-[10px] font-medium backdrop-blur-md bg-white/15 text-slate-200">
+                                        Seen
+                                    </span>
+                                `}
+                                <span class="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-semibold backdrop-blur-md flex items-center space-x-0.5 sm:space-x-1 ${expiry.urgent ? 'bg-red-500/90 text-white' : 'bg-black/55 text-amber-300'}" title="24-Hour WhatsApp Status Expiry">
+                                    <i class="ph-bold ph-timer"></i>
+                                    <span>${expiry.label}</span>
+                                </span>
+                            </div>
+
+                            ${selectMode ? `
+                                <div class="w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all shrink-0 ${
+                                    isSelected ? 'bg-wa-green border-wa-green text-white' : 'bg-black/40 border-white text-transparent'
+                                }">
+                                    <i class="ph-bold ph-check text-xs"></i>
+                                </div>
+                            ` : `
+                                <button onclick="event.stopPropagation(); toggleBookmark('${escapeAttr(item.id)}')" title="${item.saved ? 'Remove from Saved' : 'Bookmark Status'}" 
+                                    class="p-1.5 sm:p-2 rounded-lg sm:rounded-xl backdrop-blur-md shrink-0 ${item.saved ? 'bg-wa-green text-white' : 'bg-black/45 text-white hover:bg-black/65'} transition-all cursor-pointer">
+                                    <i class="${item.saved ? 'ph-fill' : 'ph'} ph-bookmark-simple text-sm sm:text-base"></i>
+                                </button>
+                            `}
+                        </div>
+
+                        <!-- Center Play Button for Videos -->
+                        ${item.type === 'video' ? `
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg">
+                                    <i class="ph-fill ph-play text-xl sm:text-2xl ml-0.5"></i>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Bottom File Info Overlay -->
+                        <div class="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 flex items-center space-x-2 sm:space-x-2.5 text-white">
+                            <div class="hidden sm:flex w-9 h-9 rounded-full bg-wa-teal border-2 ${!item.seen ? 'border-wa-green' : 'border-slate-400'} items-center justify-center shrink-0">
+                                <i class="ph-fill ${item.type === 'video' ? 'ph-film-strip' : 'ph-image'} text-base text-white"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs sm:text-sm font-semibold truncate leading-tight">${escapeHtml(item.author)}</p>
+                                <p class="text-[10px] sm:text-[11px] text-slate-300 truncate">${item.timestamp} &bull; ${item.size}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Action Footer -->
+                    <div class="p-2 sm:p-3 bg-white dark:bg-wa-darkSurface flex items-center justify-between gap-1.5 sm:gap-2">
+                        <p class="hidden sm:block text-xs text-slate-500 dark:text-slate-400 truncate flex-1 font-mono" title="${escapeAttr(item.caption)}">
+                            ${escapeHtml(item.caption)}
+                        </p>
+                        <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto space-x-1.5 shrink-0">
+                            <button onclick="openPreview('${escapeAttr(item.id)}')" title="${ghostMode ? 'Stealth Preview (Hide Seen)' : 'Fullscreen Preview'}" class="p-2 rounded-xl bg-slate-100 dark:bg-wa-darkBg hover:bg-slate-200 dark:hover:bg-wa-darkHover text-slate-700 dark:text-slate-200 transition-all cursor-pointer">
+                                <i class="ph ${ghostMode ? 'ph-eye-slash text-wa-green' : 'ph-arrows-out-simple'} text-base"></i>
+                            </button>
+                            <button onclick="downloadStatus('${escapeAttr(item.id)}')" title="Save to Phone / Device" class="flex-1 sm:flex-initial justify-center px-2.5 sm:px-3 py-2 rounded-xl bg-wa-teal hover:bg-wa-darkTeal active:scale-95 text-white text-xs font-semibold flex items-center space-x-1 transition-all cursor-pointer">
+                                <i class="ph-bold ph-download-simple text-sm"></i>
+                                <span>Save</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // ==========================================
+        // GHOST MODE & UNSEEN PERMISSION CONTROLS
+        // ==========================================
+        function toggleGhostMode() {
+            ghostMode = !ghostMode;
+            localStorage.setItem('wa_ghost_mode', ghostMode);
+            updateGhostModeUI();
+            showToast(
+                ghostMode 
+                    ? 'Ghost Mode ON: Statuses stay unseen when viewed!' 
+                    : 'Ghost Mode OFF: Viewing statuses marks them as seen.',
+                ghostMode ? 'success' : 'info'
+            );
+            renderStatuses();
+        }
+
+        function updateGhostModeUI() {
+            const btn = document.getElementById('ghostModeBtn');
+            const icon = document.getElementById('ghostIcon');
+            const label = document.getElementById('ghostLabel');
+            const permToggle = document.getElementById('permGhostToggle');
+            const permKnob = document.getElementById('permGhostKnob');
+
+            if (ghostMode) {
+                btn.classList.remove('bg-white/10', 'hover:bg-white/20');
+                btn.classList.add('bg-wa-green', 'hover:bg-emerald-500');
+                icon.className = 'ph-fill ph-eye-slash text-lg';
+                if (label) label.textContent = 'Ghost Mode: ON';
+                permToggle.classList.replace('bg-slate-300', 'bg-wa-green');
+                permToggle.classList.remove('dark:bg-slate-600');
+                permKnob.classList.add('translate-x-6');
+            } else {
+                btn.classList.remove('bg-wa-green', 'hover:bg-emerald-500');
+                btn.classList.add('bg-white/10', 'hover:bg-white/20');
+                icon.className = 'ph ph-eye text-lg';
+                if (label) label.textContent = 'Ghost Mode: OFF';
+                permToggle.classList.replace('bg-wa-green', 'bg-slate-300');
+                permToggle.classList.add('dark:bg-slate-600');
+                permKnob.classList.remove('translate-x-6');
+            }
+        }
+
+        function toggleCachePermission() {
+            cacheAccessGranted = !cacheAccessGranted;
+            const toggle = document.getElementById('permCacheToggle');
+            const knob = document.getElementById('permCacheKnob');
+            if (cacheAccessGranted) {
+                toggle.classList.replace('bg-slate-300', 'bg-wa-green');
+                toggle.classList.remove('dark:bg-slate-600');
+                knob.classList.add('translate-x-6');
+                showToast('Persistent folder access enabled.', 'success');
+            } else {
+                toggle.classList.replace('bg-wa-green', 'bg-slate-300');
+                toggle.classList.add('dark:bg-slate-600');
+                knob.classList.remove('translate-x-6');
+                showToast('Folder persistence disabled.', 'warning');
+            }
+        }
+
+        function resetAllToUnseen() {
+            statuses = statuses.map(s => ({ ...s, seen: false }));
+            localStorage.removeItem('wa_seen_status_names');
+            renderStatuses();
+            showToast('All loaded statuses restored to Unseen!', 'success');
+        }
+
+        // ==========================================
+        // INTERACTION, FILTERING & DOWNLOADS
+        // ==========================================
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-white', 'text-white', 'font-semibold');
+                btn.classList.add('border-transparent', 'text-emerald-100', 'font-medium');
+            });
+
+            const activeTab = document.getElementById(`tab-${filter}`);
+            if (activeTab) {
+                activeTab.classList.remove('border-transparent', 'text-emerald-100', 'font-medium');
+                activeTab.classList.add('border-white', 'text-white', 'font-semibold');
+            }
+
+            // Sync Mobile Bottom Navigation Active State
+            document.querySelectorAll('.mob-tab-btn').forEach(btn => {
+                btn.classList.remove('text-wa-teal', 'dark:text-wa-green', 'font-bold');
+                btn.classList.add('text-slate-500', 'dark:text-slate-400', 'font-medium');
+            });
+            const activeMobTab = document.getElementById(`mob-tab-${filter}`);
+            if (activeMobTab) {
+                activeMobTab.classList.remove('text-slate-500', 'dark:text-slate-400', 'font-medium');
+                activeMobTab.classList.add('text-wa-teal', 'dark:text-wa-green', 'font-bold');
+            }
+
+            renderStatuses();
+        }
+
+        function resetFilters() {
+            searchQuery = '';
+            document.getElementById('searchInput').value = '';
+            setFilter('all');
+        }
+
+        function toggleBookmark(id) {
+            const idx = statuses.findIndex(s => s.id === id);
+            if (idx === -1) return;
+
+            statuses[idx].saved = !statuses[idx].saved;
+            const savedNames = statuses.filter(s => s.saved).map(s => s.id);
+            localStorage.setItem('wa_saved_status_names', JSON.stringify(savedNames));
+
+            showToast(
+                statuses[idx].saved ? 'Bookmarked in Saved tab' : 'Removed from Saved tab',
+                statuses[idx].saved ? 'success' : 'info'
+            );
+            renderStatuses();
+        }
+
+        function toggleSelectMode() {
+            selectMode = !selectMode;
+            selectedIds.clear();
+            updateSelectionUI();
+            renderStatuses();
+        }
+
+        function handleCardClick(id) {
+            if (selectMode) {
+                if (selectedIds.has(id)) {
+                    selectedIds.delete(id);
+                } else {
+                    selectedIds.add(id);
+                }
+                updateSelectionUI();
+                renderStatuses();
+            } else {
+                openPreview(id);
+            }
+        }
+
+        function updateSelectionUI() {
+            const selectBtn = document.getElementById('selectModeBtn');
+            const batchBtn = document.getElementById('batchDownloadBtn');
+            const countSpan = document.getElementById('selectedCount');
+            const saveAllNewBtn = document.getElementById('saveAllNewBtn');
+
+            if (selectMode) {
+                selectBtn.innerHTML = `<i class="ph ph-x text-lg"></i><span>Cancel</span>`;
+                selectBtn.classList.add('bg-red-50', 'text-red-600', 'dark:bg-red-950/50', 'dark:text-red-400');
+                batchBtn.classList.remove('hidden');
+                if (saveAllNewBtn) saveAllNewBtn.classList.add('hidden');
+                countSpan.textContent = selectedIds.size;
+            } else {
+                selectBtn.innerHTML = `<i class="ph ph-check-square text-lg"></i><span>Select Multiple</span>`;
+                selectBtn.classList.remove('bg-red-50', 'text-red-600', 'dark:bg-red-950/50', 'dark:text-red-400');
+                batchBtn.classList.add('hidden');
+            }
+        }
+
+        async function saveAllUnseen() {
+            const unseenItems = statuses.filter(s => !s.seen);
+            if (unseenItems.length === 0) {
+                showToast('No unseen statuses left to back up!', 'info');
+                return;
+            }
+
+            showToast(`Backing up ${unseenItems.length} unseen ${unseenItems.length === 1 ? 'status' : 'statuses'}...`, 'info');
+            for (const item of unseenItems) {
+                downloadStatus(item.id);
+                await new Promise(r => setTimeout(r, 350));
+            }
+        }
+
+        function downloadStatus(id) {
+            const item = statuses.find(s => s.id === id);
+            if (!item) return;
+
+            if (!item.saved) {
+                item.saved = true;
+                const savedNames = statuses.filter(s => s.saved).map(s => s.id);
+                localStorage.setItem('wa_saved_status_names', JSON.stringify(savedNames));
+                renderStatuses();
+            }
+
+            const ext = item.type === 'video' ? 'mp4' : 'jpg';
+            const cleanName = item.caption && item.caption.includes('.')
+                ? `WA_Saved_${item.caption}`
+                : `WA_Status_${Date.now()}.${ext}`;
+
+            const a = document.createElement('a');
+            a.href = item.url;
+            a.download = cleanName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            showToast(`Saved "${cleanName}" to Downloads!`, 'success');
+        }
+
+        async function shareStatusNative(id) {
+            const item = statuses.find(s => s.id === id);
+            if (!item || !item.fileObj) return;
+
+            if (navigator.canShare && navigator.canShare({ files: [item.fileObj] })) {
+                try {
+                    await navigator.share({
+                        files: [item.fileObj],
+                        title: 'WhatsApp Status',
+                        text: 'Saved via WA Status Saver Pro'
+                    });
+                } catch (err) {
+                    if (err.name !== 'AbortError') downloadStatus(id);
+                }
+            } else {
+                downloadStatus(id);
+            }
+        }
+
+        async function downloadSelected() {
+            if (selectedIds.size === 0) {
+                showToast('Please select at least one status first.', 'warning');
+                return;
+            }
+
+            const idsToDownload = Array.from(selectedIds);
+            showToast(`Saving ${idsToDownload.length} statuses to device...`, 'info');
+
+            for (const id of idsToDownload) {
+                downloadStatus(id);
+                await new Promise(r => setTimeout(r, 350));
+            }
+
+            toggleSelectMode();
+        }
+
+        // ==========================================
+        // FULLSCREEN PREVIEW MODAL
+        // ==========================================
+        function openPreview(id) {
+            const item = statuses.find(s => s.id === id);
+            if (!item) return;
+
+            // Only mark as seen if Ghost Mode (Hide Seen) is turned OFF
+            if (!ghostMode && !item.seen) {
+                item.seen = true;
+                const seenNames = statuses.filter(s => s.seen).map(s => s.id);
+                localStorage.setItem('wa_seen_status_names', JSON.stringify(seenNames));
+                renderStatuses();
+            }
+
+            const modal = document.getElementById('previewModal');
+            if (!modal) return;
+
+            const container = document.getElementById('modalMediaContainer');
+            const avatar = document.getElementById('modalAvatar');
+            const author = document.getElementById('modalAuthor');
+            const time = document.getElementById('modalTime');
+            const caption = document.getElementById('modalCaption');
+            const captionBox = document.getElementById('modalCaptionBox');
+            const saveBtn = document.getElementById('modalSaveBtn');
+            const shareBtn = document.getElementById('modalShareBtn');
+
+            const fallbackAvatar = `https://placehold.co/100x100/008069/ffffff?text=${item.type === 'video' ? 'VID' : 'IMG'}`;
+
+            if (avatar) {
+                avatar.src = item.avatar || fallbackAvatar;
+                avatar.onerror = () => { avatar.src = fallbackAvatar; };
+            }
+            if (author) author.textContent = item.author;
+            if (time) {
+                const expiry = formatExpiryCountdown(item.lastModified);
+                time.innerHTML = `${item.timestamp} &bull; ${item.size} &bull; <span class="${expiry.urgent ? 'text-red-400 font-semibold' : 'text-amber-300'}">${expiry.label}</span> ${ghostMode ? '<span class="ml-1.5 text-wa-green font-semibold">(Stealth View: Seen Hidden)</span>' : ''}`;
+            }
+            if (saveBtn) saveBtn.onclick = () => downloadStatus(item.id);
+            if (shareBtn) shareBtn.onclick = () => shareStatusNative(item.id);
+
+            if (caption && captionBox) {
+                caption.textContent = item.caption || '';
+                captionBox.classList.toggle('hidden', !item.caption);
+            }
+
+            if (container) {
+                if (item.type === 'video') {
+                    container.innerHTML = `
+                        <video src="${item.url}" controls autoplay playsinline class="max-h-[70vh] w-auto max-w-full rounded-lg outline-none">
+                            Your browser does not support video playback.
+                        </video>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <img src="${item.url}" alt="${escapeAttr(item.author)}" onerror="this.src='https://placehold.co/800x600/202c33/25D366?text=Status+Preview'" class="max-h-[70vh] w-auto max-w-full object-contain">
+                    `;
+                }
+            }
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            const modal = document.getElementById('previewModal');
+            const container = document.getElementById('modalMediaContainer');
+            if (container) container.innerHTML = '';
+            if (modal) modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // ==========================================
+        // UTILITIES & FORMATTERS
+        // ==========================================
+        function formatStatusTitle(filename, isVideo) {
+            const clean = filename.replace(/\.[^/.]+$/, '');
+            return clean.length > 26 ? `${isVideo ? 'Video' : 'Photo'} • ${clean.slice(0, 20)}...` : clean;
+        }
+
+        function formatBytes(bytes) {
+            if (!bytes) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function formatRelativeTime(timestamp) {
+            const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+            if (diffSec < 60) return 'Just now';
+            const diffMin = Math.floor(diffSec / 60);
+            if (diffMin < 60) return `${diffMin} min${diffMin > 1 ? 's' : ''} ago`;
+            const diffHr = Math.floor(diffMin / 60);
+            if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
+            return new Date(timestamp).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatExpiryCountdown(timestamp) {
+            const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+            const remainingMs = (timestamp + twentyFourHoursMs) - Date.now();
+            if (remainingMs <= 0) {
+                return { label: 'Expired', urgent: true };
+            }
+            const totalMins = Math.floor(remainingMs / 60000);
+            const hrs = Math.floor(totalMins / 60);
+            const mins = totalMins % 60;
+            if (hrs === 0) {
+                return { label: `${mins}m left`, urgent: true };
+            }
+            return { label: `${hrs}h ${mins}m left`, urgent: hrs < 3 };
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        }
+
+        function escapeAttr(str) {
+            return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        function toggleModal(modalId, show) {
+            const el = document.getElementById(modalId);
+            if (!el) return;
+            if (show) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            html.classList.toggle('dark');
+            
+            if (html.classList.contains('dark')) {
+                icon.classList.replace('ph-moon', 'ph-sun');
+                localStorage.setItem('wa_theme', 'dark');
+            } else {
+                icon.classList.replace('ph-sun', 'ph-moon');
+                localStorage.setItem('wa_theme', 'light');
+            }
+        }
+
+        async function refreshStatuses() {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('animate-spin');
+
+            if (activeDirectoryHandle) {
+                try {
+                    const perm = await activeDirectoryHandle.queryPermission({ mode: 'read' });
+                    if (perm === 'granted') {
+                        await scanDirectoryHandle(activeDirectoryHandle);
+                        icon.classList.remove('animate-spin');
+                        showToast(`Re-scanned ${statuses.length} live statuses!`, 'success');
+                        return;
+                    }
+                } catch (e) {}
+            }
+
+            setTimeout(() => {
+                icon.classList.remove('animate-spin');
+                if (statuses.length === 0) {
+                    showToast('Connect your .Statuses folder to load live statuses.', 'info');
+                } else {
+                    renderStatuses();
+                    showToast('Status list refreshed!', 'success');
+                }
+            }, 450);
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-wa-darkTeal text-white border-wa-green',
+                warning: 'bg-amber-600 text-white border-amber-400',
+                info: 'bg-slate-800 text-white border-slate-600'
+            };
+
+            const icons = {
+                success: 'ph-check-circle text-wa-green',
+                warning: 'ph-warning-circle text-amber-200',
+                info: 'ph-info text-sky-400'
+            };
+
+            toast.className = `pointer-events-auto flex items-center space-x-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transform transition-all duration-300 translate-y-2 opacity-0 ${colors[type]}`;
+            toast.innerHTML = `
+                <i class="ph-fill ${icons[type]} text-lg"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closePreview();
+                toggleModal('guideModal', false);
+                toggleModal('permissionsModal', false);
+            }
+        });
+    </script>
+
+    <!-- Mobile Bottom Navigation Bar (Native App Experience on Phones) -->
+    <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-wa-darkSurface/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 pb-safe shadow-lg" aria-label="Mobile Navigation">
+        <div class="grid grid-cols-5 h-16">
+            <button onclick="setFilter('all')" id="mob-tab-all" class="mob-tab-btn flex flex-col items-center justify-center space-y-0.5 text-wa-teal dark:text-wa-green font-bold transition-colors cursor-pointer">
+                <div class="relative">
+                    <i class="ph-fill ph-squares-four text-xl"></i>
+                    <span id="mob-count-all" class="absolute -top-1.5 -right-2.5 bg-wa-teal text-white text-[9px] font-bold px-1 rounded-full leading-tight">0</span>
+                </div>
+                <span class="text-[10px]">All</span>
+            </button>
+            <button onclick="setFilter('unseen')" id="mob-tab-unseen" class="mob-tab-btn flex flex-col items-center justify-center space-y-0.5 text-slate-500 dark:text-slate-400 font-medium transition-colors cursor-pointer">
+                <div class="relative">
+                    <i class="ph ph-eye-closed text-xl"></i>
+                    <span id="mob-count-unseen" class="absolute -top-1.5 -right-2.5 bg-wa-green text-white text-[9px] font-bold px-1 rounded-full leading-tight">0</span>
+                </div>
+                <span class="text-[10px]">Unseen</span>
+            </button>
+            <button onclick="setFilter('image')" id="mob-tab-image" class="mob-tab-btn flex flex-col items-center justify-center space-y-0.5 text-slate-500 dark:text-slate-400 font-medium transition-colors cursor-pointer">
+                <div class="relative">
+                    <i class="ph ph-image text-xl"></i>
+                    <span id="mob-count-image" class="absolute -top-1.5 -right-2.5 bg-slate-500 text-white text-[9px] font-bold px-1 rounded-full leading-tight">0</span>
+                </div>
+                <span class="text-[10px]">Photos</span>
+            </button>
+            <button onclick="setFilter('video')" id="mob-tab-video" class="mob-tab-btn flex flex-col items-center justify-center space-y-0.5 text-slate-500 dark:text-slate-400 font-medium transition-colors cursor-pointer">
+                <div class="relative">
+                    <i class="ph ph-video-camera text-xl"></i>
+                    <span id="mob-count-video" class="absolute -top-1.5 -right-2.5 bg-slate-500 text-white text-[9px] font-bold px-1 rounded-full leading-tight">0</span>
+                </div>
+                <span class="text-[10px]">Videos</span>
+            </button>
+            <button onclick="setFilter('saved')" id="mob-tab-saved" class="mob-tab-btn flex flex-col items-center justify-center space-y-0.5 text-slate-500 dark:text-slate-400 font-medium transition-colors cursor-pointer">
+                <div class="relative">
+                    <i class="ph ph-bookmark-simple text-xl"></i>
+                    <span id="mob-count-saved" class="absolute -top-1.5 -right-2.5 bg-slate-500 text-white text-[9px] font-bold px-1 rounded-full leading-tight">0</span>
+                </div>
+                <span class="text-[10px]">Saved</span>
+            </button>
+        </div>
+    </nav>
+</body>
+</html>

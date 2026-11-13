@@ -1,0 +1,11 @@
+{
+  "name": "wa-status-saver-pro",
+  "version": "1.0.0",
+  "description": "Live, private WhatsApp Status Saver & Stealth Viewer (PWA)",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -l 3000 ."
+  },
+  "keywords": ["whatsapp", "status-saver", "pwa", "stealth-viewer"],
+  "license": "MIT"
+}
